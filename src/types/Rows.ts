@@ -13,20 +13,8 @@
  * limitations under the License.
  */
 
-import { Metadata, OperationWarning, Row } from './../types'
-import Rows from "../types/Rows";
+import Row from "./Row";
 
-export interface ISelectOperationResult {
-	getAffectedItemsCount(): number
-	getAffectedRowsCount(): number
-	getAutoIncrementValue(): number
-	getGeneratedIds(): string[]
-	getWarnings(): OperationWarning[]
-	getWarningsCount(): number
-	getRows(): Row[][]
-	getMetadata(): Metadata
-	getObjects(): Object[]
-	fetchAll(): Rows[]
-}
-
-export default ISelectOperationResult
+/** MySQL Query Row */
+export type Rows = Row[];
+export default Rows

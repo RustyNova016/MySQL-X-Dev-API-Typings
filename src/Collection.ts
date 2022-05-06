@@ -30,7 +30,7 @@ import {
     ISession,
 } from './interfaces'
 import {Document, IndexDefinition, SearchCondition, SearchConditionString} from './types'
-import {createConditionString} from "./tools/CreateConditionString";
+import createConditionString from "./tools/CreateConditionString";
 
 export class Collection implements ICollection {
     private readonly schema: ISchema

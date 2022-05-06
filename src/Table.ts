@@ -19,7 +19,7 @@ import TableSelect from './TableSelect'
 import TableUpdate from './TableUpdate'
 import {IClient, ISchema, ISession, ITable, ITableDelete, ITableInsert, ITableSelect, ITableUpdate} from './interfaces'
 import {SearchCondition, SearchConditionString} from './types'
-import {createConditionString} from "./tools/CreateConditionString";
+import createConditionString from "./tools/CreateConditionString";
 
 export class Table implements ITable {
     private readonly schema: ISchema

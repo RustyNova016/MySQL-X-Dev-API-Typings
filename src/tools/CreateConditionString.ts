@@ -4,7 +4,7 @@ import isBoolean from "lodash.isboolean";
 import isNumber from "lodash.isnumber";
 
 /** Convert a search condition to a valid MySQL string. */
-export function createConditionString(condition: SearchCondition | SearchConditionString): SearchConditionString {
+export default function createConditionString(condition: SearchCondition | SearchConditionString): SearchConditionString {
     let conditionString: SearchConditionString = ''
     if (isString(condition)) {
         conditionString = condition

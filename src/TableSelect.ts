@@ -26,6 +26,7 @@ export class TableSelect implements ITableSelect {
 		this.xTableSelect = xTableSelect
 	}
 
+	/** Execute the operation */
 	public async execute(): Promise<ISelectOperationResult> {
 		try {
 			const rows: Row[][] = []

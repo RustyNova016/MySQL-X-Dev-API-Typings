@@ -13,5 +13,6 @@
  * limitations under the License.
  */
 
+/** MySQL Query Row */
 export type Row = any
 export default Row

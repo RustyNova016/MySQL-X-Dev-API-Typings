@@ -14,6 +14,7 @@
  */
 
 import { Metadata, OperationWarning, Row } from './../types'
+import Rows from "../types/Rows";
 
 export interface ISelectOperationResult {
 	getAffectedItemsCount(): number
@@ -25,7 +26,7 @@ export interface ISelectOperationResult {
 	getRows(): Row[][]
 	getMetadata(): Metadata
 	getObjects(): Object[]
-	fetchAll(): Row[][]
+	fetchAll(): Rows[]
 }
 
 export default ISelectOperationResult

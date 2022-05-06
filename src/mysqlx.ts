@@ -19,6 +19,7 @@ import ClientClass from './Client';
 import SessionClass from './Session';
 import * as Types from './types'
 import * as Interfaces from './interfaces'
+import createConditionString from "./tools/CreateConditionString";
 export type Client = Interfaces.IClient
 export type Collection = Interfaces.ICollection
 export type CollectionAdd = Interfaces.ICollectionAdd
@@ -102,4 +103,5 @@ export default {
 	getSession,
 	getVersion,
 	getXVersion,
+	createConditionString,
 }

@@ -16,6 +16,7 @@
 import OperationResult from './OperationResult'
 import { ISelectOperationResult } from './interfaces'
 import { Metadata, Row } from './types'
+import Rows from "./types/Rows";
 
 export class SelectOperationResult extends OperationResult implements ISelectOperationResult {
 	private readonly rows: Row[][]
@@ -38,11 +39,11 @@ export class SelectOperationResult extends OperationResult implements ISelectOpe
 		}
 	}
 
-	fetchAll(): Row[][] {
+	public fetchAll(): Rows[] {
         return this.rows
     }
 
-	public getRows(): Row[][] {
+	public getRows(): Rows[] {
 		return this.rows
 	}
 

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
-/** Search condition string, usually found in WHERE statements */
-export type SearchConditionString = string
-export default SearchConditionString
+import Row from "./Row";
+
+/** MySQL Query Row */
+export type Rows = Row[];
+export default Rows

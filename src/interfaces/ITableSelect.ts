@@ -15,6 +15,7 @@
 
 import { ISelectOperationResult } from './index'
 
+/** Select operation */
 export interface ITableSelect {
 	execute(): Promise<ISelectOperationResult>
 }

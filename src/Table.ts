@@ -13,136 +13,122 @@
  * limitations under the License.
  */
 
-import isBoolean from 'lodash.isboolean'
-import isNumber from 'lodash.isnumber'
-import isString from 'lodash.isstring'
 import TableDelete from './TableDelete'
 import TableInsert from './TableInsert'
 import TableSelect from './TableSelect'
 import TableUpdate from './TableUpdate'
-import { IClient, ISchema, ISession, ITable, ITableDelete, ITableInsert, ITableSelect, ITableUpdate } from './interfaces'
-import { SearchCondition, SearchConditionString } from './types'
+import {IClient, ISchema, ISession, ITable, ITableDelete, ITableInsert, ITableSelect, ITableUpdate} from './interfaces'
+import {SearchCondition, SearchConditionString} from './types'
+import {createConditionString} from "./tools/CreateConditionString";
 
 export class Table implements ITable {
-	private readonly schema: ISchema
-	private readonly xTable: any
+    private readonly schema: ISchema
+    private readonly xTable: any
 
-	constructor(schema: ISchema, xTable: any) {
-		this.schema = schema
-		this.xTable = xTable
-	}
+    constructor(schema: ISchema, xTable: any) {
+        this.schema = schema
+        this.xTable = xTable
+    }
 
-	private static createConditionString(condition: SearchCondition | SearchConditionString): SearchConditionString {
-		let conditionString: SearchConditionString = ''
-		if (isString(condition)) {
-			conditionString = condition
-		} else if (isBoolean(condition)) {
-			conditionString = condition.toString()
-		} else {
-			let firstCondition = true
-			for (const key in condition) {
-				if (condition.hasOwnProperty(key)) {
-					const value = isNumber(condition[key]) || isBoolean(condition[key]) ? condition[key].toString() : `"${condition[key]}"`
-					conditionString = conditionString
-						.concat(firstCondition ? '' : '  & ')
-						.concat(key)
-						.concat('=')
-						.concat(value)
-					if (firstCondition) {
-						firstCondition = false
-					}
-				}
-			}
-		}
-		return conditionString
-	}
+    public getClient(): IClient | null {
+        return this.schema.getClient()
+    }
 
-	public getClient(): IClient | null {
-		return this.schema.getClient()
-	}
+    public getSession(): ISession {
+        return this.schema.getSession()
+    }
 
-	public getSession(): ISession {
-		return this.schema.getSession()
-	}
+    public getSchema(): ISchema {
+        return this.schema
+    }
 
-	public getSchema(): ISchema {
-		return this.schema
-	}
+    /** Return the raw mysql X dev api table object. */
+    public getXTable(): any {
+        return this.xTable
+    }
 
-	public getXTable(): any {
-		return this.xTable
-	}
+    public async count(): Promise<number> {
+        try {
+            return await this.xTable.count()
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async count(): Promise<number> {
-		try {
-			return await this.xTable.count()
-		} catch (error) {
-			throw error
-		}
-	}
+    public delete(condition: SearchCondition | SearchConditionString = true): ITableDelete {
+        try {
+            const conditionString = createConditionString(condition)
+            const xTableRemove = this.xTable.delete(conditionString)
+            return new TableDelete(this, xTableRemove)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public delete(condition: SearchCondition | SearchConditionString = true): ITableDelete {
-		try {
-			const conditionString = Table.createConditionString(condition)
-			const xTableRemove = this.xTable.delete(conditionString)
-			return new TableDelete(this, xTableRemove)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async existsInDatabase(): Promise<boolean> {
+        try {
+            return await this.xTable.existsInDatabase()
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async existsInDatabase(): Promise<boolean> {
-		try {
-			return await this.xTable.existsInDatabase()
-		} catch (error) {
-			throw error
-		}
-	}
+    public getName(): string {
+        return this.xTable.getName()
+    }
 
-	public getName(): string {
-		return this.xTable.getName()
-	}
+    public insert(fields: string[]): ITableInsert
+    public insert(fields: { [k: string]: any }): ITableInsert
+    public insert(...fields: string[]): ITableInsert
+    public insert(...fields: any[]): ITableInsert {
+        try {
+            const xTableInsert = this.xTable.insert(...fields)
+            return new TableInsert(this, xTableInsert)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public insert(fields: string[]): ITableInsert
-	public insert(fields: { [k: string]: any }): ITableInsert
-	public insert(...fields: string[]): ITableInsert
-	public insert(...fields: any[]): ITableInsert {
-		try {
-			const xTableInsert = this.xTable.insert(...fields)
-			return new TableInsert(this, xTableInsert)
-		} catch (error) {
-			throw error
-		}
-	}
+    public inspect(): Object {
+        return this.xTable.inspect()
+    }
 
-	public inspect(): Object {
-		return this.xTable.inspect()
-	}
+    public async isView(): Promise<boolean> {
+        return await this.xTable.isView()
+    }
 
-	public async isView(): Promise<boolean> {
-		return await this.xTable.isView()
-	}
+    /** The Table.select() method works like a SELECT statement in SQL
+     *  https://dev.mysql.com/doc/x-devapi-userguide/en/sql-crud-functions.html
+     */
+    public select(fields: string[]): ITableSelect
+    /** The Table.select() method works like a SELECT statement in SQL
+     *  https://dev.mysql.com/doc/x-devapi-userguide/en/sql-crud-functions.html
+     */
+    public select(...fields: string[]): ITableSelect
+    /** The Table.select() method works like a SELECT statement in SQL
+     *  https://dev.mysql.com/doc/x-devapi-userguide/en/sql-crud-functions.html
+     */
+    public select(...fields: any[]): ITableSelect {
+        try {
+            const xTableSelect = this.xTable.select(...fields)
+            return new TableSelect(this, xTableSelect)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public select(fields: string[]): ITableSelect
-	public select(...fields: string[]): ITableSelect
-	public select(...fields: any[]): ITableSelect {
-		try {
-			const xTableSelect = this.xTable.select(...fields)
-			return new TableSelect(this, xTableSelect)
-		} catch (error) {
-			throw error
-		}
-	}
-
-	public update(condition?: SearchCondition | SearchConditionString): ITableUpdate {
-		try {
-			const conditionString = condition !== void 0 ? Table.createConditionString(condition) : condition
-			const xTableUpdate = this.xTable.modify(conditionString)
-			return new TableUpdate(this, xTableUpdate)
-		} catch (error) {
-			throw error
-		}
-	}
+    /** The Table.update() method works like an UPDATE statement in SQL.
+     *  https://dev.mysql.com/doc/x-devapi-userguide/en/sql-crud-functions.html
+     */
+    public update(condition?: SearchCondition | SearchConditionString): ITableUpdate {
+        try {
+            const conditionString = condition !== void 0 ? createConditionString(condition) : condition
+            const xTableUpdate = this.xTable.modify(conditionString)
+            return new TableUpdate(this, xTableUpdate)
+        } catch (error) {
+            throw error
+        }
+    }
 }
 
 export default Table

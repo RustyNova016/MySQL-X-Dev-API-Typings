@@ -13,207 +13,180 @@
  * limitations under the License.
  */
 
-import isBoolean from 'lodash.isboolean'
-import isNumber from 'lodash.isnumber'
-import isString from 'lodash.isstring'
 import CollectionAdd from './CollectionAdd'
 import CollectionFind from './CollectionFind'
 import CollectionModify from './CollectionModify'
 import CollectionRemove from './CollectionRemove'
 import OperationResult from './OperationResult'
 import {
-	IClient,
-	ICollection,
-	ICollectionAdd,
-	ICollectionFind,
-	ICollectionModify,
-	ICollectionRemove,
-	IOperationResult,
-	ISchema,
-	ISession,
+    IClient,
+    ICollection,
+    ICollectionAdd,
+    ICollectionFind,
+    ICollectionModify,
+    ICollectionRemove,
+    IOperationResult,
+    ISchema,
+    ISession,
 } from './interfaces'
-import { Document, IndexDefinition, SearchCondition, SearchConditionString } from './types'
+import {Document, IndexDefinition, SearchCondition, SearchConditionString} from './types'
+import {createConditionString} from "./tools/CreateConditionString";
 
 export class Collection implements ICollection {
-	private readonly schema: ISchema
-	private readonly xCollection: any
+    private readonly schema: ISchema
+    private readonly xCollection: any
 
-	constructor(schema: ISchema, xCollection: any) {
-		this.schema = schema
-		this.xCollection = xCollection
-	}
+    constructor(schema: ISchema, xCollection: any) {
+        this.schema = schema
+        this.xCollection = xCollection
+    }
 
-	private static createConditionString(condition: SearchCondition | SearchConditionString): SearchConditionString {
-		let conditionString: SearchConditionString = ''
-		if (isString(condition)) {
-			conditionString = condition
-		} else if (isBoolean(condition)) {
-			conditionString = condition.toString()
-		} else {
-			let firstCondition = true
-			for (const key in condition) {
-				if (condition.hasOwnProperty(key)) {
-					const value = isNumber(condition[key]) || isBoolean(condition[key]) ? condition[key].toString() : `"${condition[key]}"`
-					conditionString = conditionString
-						.concat(firstCondition ? '' : '  & ')
-						.concat(key)
-						.concat('=')
-						.concat(value)
-					if (firstCondition) {
-						firstCondition = false
-					}
-				}
-			}
-		}
-		return conditionString
-	}
+    public getClient(): IClient | null {
+        return this.schema.getClient()
+    }
 
-	public getClient(): IClient | null {
-		return this.schema.getClient()
-	}
+    public getSession(): ISession {
+        return this.schema.getSession()
+    }
 
-	public getSession(): ISession {
-		return this.schema.getSession()
-	}
+    public getSchema(): ISchema {
+        return this.schema
+    }
 
-	public getSchema(): ISchema {
-		return this.schema
-	}
+    public getXCollection(): any {
+        return this.xCollection
+    }
 
-	public getXCollection(): any {
-		return this.xCollection
-	}
+    public add(document: Document | Document[]): ICollectionAdd {
+        try {
+            const xCollectionAdd = this.xCollection.add(document)
+            return new CollectionAdd(this, xCollectionAdd)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public add(document: Document | Document[]): ICollectionAdd {
-		try {
-			const xCollectionAdd = this.xCollection.add(document)
-			return new CollectionAdd(this, xCollectionAdd)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async addOrReplaceOne(id: string, document: Document): Promise<IOperationResult> {
+        try {
+            const xResult = await this.xCollection.addOrReplaceOne(id, document)
+            return new OperationResult(xResult)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async addOrReplaceOne(id: string, document: Document): Promise<IOperationResult> {
-		try {
-			const xResult = await this.xCollection.addOrReplaceOne(id, document)
-			return new OperationResult(xResult)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async count(): Promise<number> {
+        try {
+            return await this.xCollection.count()
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async count(): Promise<number> {
-		try {
-			return await this.xCollection.count()
-		} catch (error) {
-			throw error
-		}
-	}
+    public async createIndex(name: string, constraint: IndexDefinition): Promise<boolean> {
+        try {
+            return await this.xCollection.createIndex(name, constraint)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async createIndex(name: string, constraint: IndexDefinition): Promise<boolean> {
-		try {
-			return await this.xCollection.createIndex(name, constraint)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async dropIndex(name: string): Promise<boolean> {
+        try {
+            return await this.xCollection.dropIndex(name)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async dropIndex(name: string): Promise<boolean> {
-		try {
-			return await this.xCollection.dropIndex(name)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async existsInDatabase(): Promise<boolean> {
+        try {
+            return await this.xCollection.existsInDatabase()
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async existsInDatabase(): Promise<boolean> {
-		try {
-			return await this.xCollection.existsInDatabase()
-		} catch (error) {
-			throw error
-		}
-	}
+    public find(condition: SearchCondition | SearchConditionString = true): ICollectionFind {
+        try {
+            const conditionString = createConditionString(condition)
+            const xCollectionFind = this.xCollection.find(conditionString)
+            return new CollectionFind(this, xCollectionFind)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public find(condition: SearchCondition | SearchConditionString = true): ICollectionFind {
-		try {
-			const conditionString = Collection.createConditionString(condition)
-			const xCollectionFind = this.xCollection.find(conditionString)
-			return new CollectionFind(this, xCollectionFind)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async findOne(condition: SearchCondition | SearchConditionString): Promise<Document | undefined> {
+        try {
+            const findResult = await this.find(condition).execute()
+            const documents = findResult.getDocuments()
+            return documents.length > 0 ? documents[0] : void 0
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async findOne(condition: SearchCondition | SearchConditionString): Promise<Document | undefined> {
-		try {
-			const findResult = await this.find(condition).execute()
-			const documents = findResult.getDocuments()
-			return documents.length > 0 ? documents[0] : void 0
-		} catch (error) {
-			throw error
-		}
-	}
+    public async findByID(id: string): Promise<Document | undefined> {
+        try {
+            return await this.findOne({_id: id})
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async findByID(id: string): Promise<Document | undefined> {
-		try {
-			return await this.findOne({ _id: id })
-		} catch (error) {
-			throw error
-		}
-	}
+    public getName(): string {
+        return this.xCollection.getName()
+    }
 
-	public getName(): string {
-		return this.xCollection.getName()
-	}
+    public async getOne(id: string): Promise<Document> {
+        try {
+            return await this.xCollection.getOne(id)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async getOne(id: string): Promise<Document> {
-		try {
-			return await this.xCollection.getOne(id)
-		} catch (error) {
-			throw error
-		}
-	}
+    public inspect(): Object {
+        return this.xCollection.inspect()
+    }
 
-	public inspect(): Object {
-		return this.xCollection.inspect()
-	}
+    public modify(condition: SearchCondition | SearchConditionString): ICollectionModify {
+        try {
+            const conditionString = createConditionString(condition)
+            const xCollectionModify = this.xCollection.modify(conditionString)
+            return new CollectionModify(this, xCollectionModify)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public modify(condition: SearchCondition | SearchConditionString): ICollectionModify {
-		try {
-			const conditionString = Collection.createConditionString(condition)
-			const xCollectionModify = this.xCollection.modify(conditionString)
-			return new CollectionModify(this, xCollectionModify)
-		} catch (error) {
-			throw error
-		}
-	}
+    public remove(condition: SearchCondition | SearchConditionString = true): ICollectionRemove {
+        try {
+            const conditionString = createConditionString(condition)
+            const xCollectionRemove = this.xCollection.remove(conditionString)
+            return new CollectionRemove(this, xCollectionRemove)
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public remove(condition: SearchCondition | SearchConditionString = true): ICollectionRemove {
-		try {
-			const conditionString = Collection.createConditionString(condition)
-			const xCollectionRemove = this.xCollection.remove(conditionString)
-			return new CollectionRemove(this, xCollectionRemove)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async removeByID(id: string): Promise<IOperationResult> {
+        try {
+            return await this.remove({_id: id}).execute()
+        } catch (error) {
+            throw error
+        }
+    }
 
-	public async removeByID(id: string): Promise<IOperationResult> {
-		try {
-			return await this.remove({ _id: id }).execute()
-		} catch (error) {
-			throw error
-		}
-	}
-
-	public async replaceOne(id: string, document: Document): Promise<IOperationResult> {
-		try {
-			const xResult = await this.xCollection.replaceOne(id, document)
-			return new OperationResult(xResult)
-		} catch (error) {
-			throw error
-		}
-	}
+    public async replaceOne(id: string, document: Document): Promise<IOperationResult> {
+        try {
+            const xResult = await this.xCollection.replaceOne(id, document)
+            return new OperationResult(xResult)
+        } catch (error) {
+            throw error
+        }
+    }
 }
 
 export default Collection

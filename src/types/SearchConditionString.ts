@@ -13,5 +13,6 @@
  * limitations under the License.
  */
 
+/** Search condition string, usually found in WHERE statements */
 export type SearchConditionString = string
 export default SearchConditionString

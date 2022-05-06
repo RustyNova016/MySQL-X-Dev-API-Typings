@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+/** Object or boolean determining the search condition of the statement */
 export type SearchCondition =
 	| boolean
 	| {
